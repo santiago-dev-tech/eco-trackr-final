@@ -14,7 +14,7 @@ app.use(express.static(__dirname));
 
 // Ruta principal
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'eco-web-api.html'));
+  res.sendFile(path.join(__dirname, 'eco-trackr-voz.html'));
 });
 
 /*  API  */
