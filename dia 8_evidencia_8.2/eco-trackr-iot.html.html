@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>EcoTrackr - API + Voz + IoT</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        input, button {
+            padding: 10px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .card {
+            background: #f4f6f7;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+
+        .json {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+
+        h2 {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>🌱 EcoTrackr</h1>
+
+<!-- ================= CALCULADORA API ================= -->
+
+<h2>Calculadora con API</h2>
+
+<input type="number" id="num1" placeholder="Número 1" value="10">
+<input type="number" id="num2" placeholder="Número 2" value="5">
+
+<button onclick="consumir('sumar')">Sumar</button>
+<button onclick="consumir('restar')">Restar</button>
+<button onclick="consumir('multiplicar')">Multiplicar</button>
+<button onclick="consumir('dividir')">Dividir</button>
+<button onclick="consumirPorcentaje()">Porcentaje</button>
+
+<div class="card">
+    <h3>Resultado:</h3>
+    <div id="resultadoNumero" style="font-size:30px; font-weight:bold;">0</div>
+    <button onclick="hablarResultado()">🔊 Hablar resultado</button>
+</div>
+
+<div class="json">
+<pre id="jsonRespuesta">{}</pre>
+</div>
+
+
+<!-- ================= SIMULACIÓN IoT ================= -->
+
+<h2>🌍 Simulación IoT</h2>
+
+<div class="card">
+    <p>🌡 Temperatura: <strong id="temp"></strong> °C</p>
+    <p>💧 Humedad: <strong id="humedad"></strong> %</p>
+    <p>🌫 Calidad del aire (AQI): <strong id="aire"></strong></p>
+
+    <h3>EcoTip:</h3>
+    <p id="ecoTip"></p>
+
+    <button onclick="generarLectura()">Nueva lectura</button>
+</div>
+
+
+<script>
+
+const API_URL = "http://localhost:3000/api";
+const resultadoNumero = document.getElementById("resultadoNumero");
+const jsonRespuesta = document.getElementById("jsonRespuesta");
+
+/* ================= VOZ ================= */
+
+/**
+ * Función para síntesis de voz
+ */
+function hablar(texto) {
+
+    if (!('speechSynthesis' in window)) {
+        alert("Tu navegador no soporta síntesis de voz");
+        return;
+    }
+
+    const mensaje = new SpeechSynthesisUtterance(texto);
+    mensaje.lang = "es-ES";
+
+    mensaje.onend = () => {
+        console.log("Lectura finalizada");
+    };
+
+    window.speechSynthesis.speak(mensaje);
+}
+
+function hablarResultado() {
+    hablar(`El resultado actual es ${resultadoNumero.textContent}`);
+}
+
+/* ================= API ================= */
+
+function consumir(operacion) {
+
+    const a = document.getElementById("num1").value;
+    const b = document.getElementById("num2").value;
+
+    fetch(`${API_URL}/${operacion}?a=${a}&b=${b}`)
+        .then(res => res.json())
+        .then(data => {
+
+            resultadoNumero.textContent = data.resultado;
+            jsonRespuesta.textContent = JSON.stringify(data, null, 2);
+
+            hablar(`El resultado es ${data.resultado}`);
+
+        })
+        .catch(err => console.error(err));
+}
+
+function consumirPorcentaje() {
+
+    const total = document.getElementById("num1").value;
+    const porcentaje = document.getElementById("num2").value;
+
+    fetch(`${API_URL}/porcentaje?total=${total}&porcentaje=${porcentaje}`)
+        .then(res => res.json())
+        .then(data => {
+
+            resultadoNumero.textContent = data.resultado;
+            jsonRespuesta.textContent = JSON.stringify(data, null, 2);
+
+            hablar(`El porcentaje calculado es ${data.resultado}`);
+
+        })
+        .catch(err => console.error(err));
+}
+
+
+/*  IoT  */
+
+function generarLectura() {
+
+    const temperatura = Math.floor(Math.random() * (33 - 18 + 1)) + 18;
+    const humedad = Math.floor(Math.random() * (80 - 40 + 1)) + 40;
+    const aire = Math.floor(Math.random() * (120 - 20 + 1)) + 20;
+
+    document.getElementById("temp").textContent = temperatura;
+    document.getElementById("humedad").textContent = humedad;
+    document.getElementById("aire").textContent = aire;
+
+    let tip = "";
+
+    if (temperatura > 28) {
+        tip = "Alta temperatura, ahorra energía.";
+    } 
+    else if (humedad > 70) {
+        tip = "Alta humedad, recolecta agua de lluvia.";
+    } 
+    else if (aire < 50) {
+        tip = "Calidad excelente, recicla al aire libre.";
+    } 
+    else {
+        tip = "Condiciones normales, mantén hábitos sostenibles.";
+    }
+
+    document.getElementById("ecoTip").textContent = tip;
+
+    //  Voz automática
+    hablar(tip);
+}
+
+//  Actualiza cada 10 segundos
+setInterval(generarLectura, 10000);
+
+// Primera lectura automática
+generarLectura();
+
+</script>
+
+</body>
+</html>
