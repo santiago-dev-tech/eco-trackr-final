@@ -51,3 +51,21 @@ El sistema genera datos simulados de temperatura, humedad y calidad del aire cad
 ## ⚙️ Cómo Ejecutar el Proyecto
 
 1. Clonar repositorio:
+
+git clone https://github.com/santiago-dev-tech/eco-trackr-final.git
+
+2. Entrar al proyecto:
+
+cd eco-trackr-final
+
+3. Instalar dependencias:
+
+npm install
+
+4. Ejecutar el servidor:
+
+npm start
+
+5. Abrir en el navegador:
+
+http://localhost:3000
